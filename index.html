@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scrubbe - Coming Soon</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    #background-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+    }
+
+    .logo {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #60a5fa;
+      text-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
+    }
+
+    .analog-clock {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.1);
+      position: relative;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+    }
+
+    .clock-hand {
+      position: absolute;
+      background-color: #fff;
+      transform-origin: bottom center;
+      border-radius: 10px;
+      left: 50%;
+    }
+
+    .hour-hand {
+      width: 4px;
+      height: 25px;
+      top: 25px;
+      margin-left: -2px;
+    }
+
+    .minute-hand {
+      width: 3px;
+      height: 35px;
+      top: 15px;
+      margin-left: -1.5px;
+    }
+
+    .second-hand {
+      width: 1px;
+      height: 40px;
+      top: 10px;
+      margin-left: -0.5px;
+      background-color: #60a5fa;
+    }
+
+    .clock-center {
+      position: absolute;
+      background-color: #60a5fa;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .hero {
+      text-align: center;
+      padding: 3rem 0;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #60a5fa, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px rgba(96, 165, 250, 0.3);
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      font-weight: 300;
+      opacity: 0.9;
+    }
+
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      text-decoration: none;
+      padding: 0.8rem 2rem;
+      border-radius: 5px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+      transition: all 0.3s;
+    }
+
+    .cta-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.6);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin: 4rem 0;
+    }
+
+    .feature-card {
+      background: rgba(30, 41, 59, 0.5);
+      border-radius: 10px;
+      padding: 2rem;
+      border: 1px solid rgba(96, 165, 250, 0.2);
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .feature-card h3 {
+      color: #60a5fa;
+      margin-bottom: 1rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      margin-top: auto;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .device-info {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(15, 23, 42, 0.7);
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(96, 165, 250, 0.2);
+    }
+
+    .device-info p {
+      margin: 3px 0;
+    }
+
+    /* Form Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 10;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      width: 90%;
+      max-width: 500px;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border-radius: 10px;
+      padding: 2rem;
+      border: 1px solid rgba(96, 165, 250, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .close-button {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 1.5rem;
+      color: #60a5fa;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .close-button:hover {
+      color: #3b82f6;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border-radius: 5px;
+      border: 1px solid rgba(96, 165, 250, 0.2);
+      background: rgba(15, 23, 42, 0.5);
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+
+    button {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+    }
+
+    .acknowledgement {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 10px;
+      margin-top: 2rem;
+    }
+
+    .acknowledgement h2 {
+      color: #10b981;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="background-animation"></div>
+  
+  <header>
+    <div class="logo">Scrubbe</div>
+    <div class="analog-clock">
+      <div class="clock-hand hour-hand" id="hour-hand"></div>
+      <div class="clock-hand minute-hand" id="minute-hand"></div>
+      <div class="clock-hand second-hand" id="second-hand"></div>
+      <div class="clock-center"></div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="hero">
+      <h1>Scrubbe is coming soon</h1>
+      <h2>The next generation SIEM & SOAR platform that revolutionizes cybersecurity operations</h2>
+      <a href="#" class="cta-button" id="early-access-btn">Get Early Access</a>
+    </div>
+
+    <div class="features">
+      <div class="feature-card">
+        <h3>Advanced User-facing Analytics</h3>
+        <p>Powerful analytics dashboard providing insights on user behaviour.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Seamless Automation</h3>
+        <p>Automate response workflows and eliminate repetitive tasks with our intelligent SOAR capabilities.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Unified Security Platform</h3>
+        <p>Combine SIEM and SOAR in one integrated solution for comprehensive security operations.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Modal -->
+  <div class="modal" id="form-modal">
+    <div class="modal-content">
+      <span class="close-button" id="close-modal">&times;</span>
+      <h1>Get Early Access</h1>
+      <form id="access-form">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="company">Company</label>
+          <input type="text" id="company" name="company" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="role">Role</label>
+          <select id="role" name="role" required>
+            <option value="">Select your role</option>
+            <option value="CISO">CISO</option>
+            <option value="Security Engineer">Security Engineer</option>
+            <option value="SOC Analyst">SOC Analyst</option>
+            <option value="IT Manager">IT Manager</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="message">How can Scrubbe help your organization?</label>
+          <textarea id="message" name="message" rows="4"></textarea>
+        </div>
+        
+        <button type="submit">Submit</button>
+      </form>
+
+      <div class="acknowledgement" id="acknowledgement">
+        <h2>Thank You!</h2>
+        <p>We've received your information and will be in touch soon about early access to Scrubbe.</p>
+        <p>We're excited to revolutionize your security operations with our next-generation SIEM and SOAR platform.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="device-info">
+    <p id="location">Location: Detecting...</p>
+    <p id="device">Device: Detecting...</p>
+    <p id="network">Network: Detecting...</p>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Scrubbe. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Three.js Animation
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    
+    const renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('background-animation').appendChild(renderer.domElement);
+    
+    // Create network nodes and connections
+    const nodes = [];
+    const connections = [];
+    const nodeCount = 20;
+    
+    for (let i = 0; i < nodeCount; i++) {
+      const geometry = new THREE.SphereGeometry(0.2, 32, 32);
+      const material = new THREE.MeshBasicMaterial({ 
+        color: new THREE.Color(0x60a5fa),
+        transparent: true,
+        opacity: 0.7
+      });
+      const node = new THREE.Mesh(geometry, material);
+      
+      node.position.x = (Math.random() - 0.5) * 30;
+      node.position.y = (Math.random() - 0.5) * 15;
+      node.position.z = (Math.random() - 0.5) * 10 - 15;
+      
+      node.userData = {
+        velocityX: (Math.random() - 0.5) * 0.02,
+        velocityY: (Math.random() - 0.5) * 0.02,
+        velocityZ: (Math.random() - 0.5) * 0.01
+      };
+      
+      nodes.push(node);
+      scene.add(node);
+    }
+    
+    // Create connections between nodes
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        if (Math.random() > 0.85) {
+          const material = new THREE.LineBasicMaterial({ 
+            color: 0x3b82f6,
+            transparent: true,
+            opacity: 0.3
+          });
+          const geometry = new THREE.BufferGeometry().setFromPoints([
+            nodes[i].position,
+            nodes[j].position
+          ]);
+          const line = new THREE.Line(geometry, material);
+          connections.push({
+            line: line,
+            node1: i,
+            node2: j
+          });
+          scene.add(line);
+        }
+      }
+    }
+    
+    camera.position.z = 5;
+    
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      // Move nodes
+      nodes.forEach(node => {
+        node.position.x += node.userData.velocityX;
+        node.position.y += node.userData.velocityY;
+        node.position.z += node.userData.velocityZ;
+        
+        // Boundary check and bounce
+        if (Math.abs(node.position.x) > 15) node.userData.velocityX *= -1;
+        if (Math.abs(node.position.y) > 8) node.userData.velocityY *= -1;
+        if (Math.abs(node.position.z) > 10) node.userData.velocityZ *= -1;
+      });
+      
+      // Update connections
+      connections.forEach(conn => {
+        const points = [
+          nodes[conn.node1].position,
+          nodes[conn.node2].position
+        ];
+        conn.line.geometry.setFromPoints(points);
+        conn.line.geometry.verticesNeedUpdate = true;
+      });
+      
+      renderer.render(scene, camera);
+    }
+    
+    animate();
+    
+    // Resize handler
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    
+    // Analog Clock
+    function updateClock() {
+      const now = new Date();
+      const hours = now.getHours() % 12;
+      const minutes = now.getMinutes();
+      const seconds = now.getSeconds();
+      
+      const hourDeg = (hours + minutes/60) * 30;
+      const minuteDeg = (minutes + seconds/60) * 6;
+      const secondDeg = seconds * 6;
+      
+      document.getElementById('hour-hand').style.transform = `rotate(${hourDeg}deg)`;
+      document.getElementById('minute-hand').style.transform = `rotate(${minuteDeg}deg)`;
+      document.getElementById('second-hand').style.transform = `rotate(${secondDeg}deg)`;
+    }
+    
+    setInterval(updateClock, 1000);
+    updateClock();
+    
+    // Device and Network Info
+    function detectDeviceInfo() {
+      // Device detection
+      const userAgent = navigator.userAgent;
+      let deviceType = "Unknown";
+      
+      if (/Android/i.test(userAgent)) {
+        deviceType = "Android";
+      } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
+        deviceType = "iOS";
+      } else if (/Windows/i.test(userAgent)) {
+        deviceType = "Windows";
+      } else if (/Mac/i.test(userAgent)) {
+        deviceType = "Mac";
+      } else if (/Linux/i.test(userAgent)) {
+        deviceType = "Linux";
+      }
+      
+      document.getElementById('device').textContent = `Device: ${deviceType}`;
+      
+      // Network detection (limited by browser capabilities)
+      if (navigator.connection) {
+        const connection = navigator.connection;
+        const networkType = connection.effectiveType || "Unknown";
+        document.getElementById('network').textContent = `Network: ${networkType}`;
+      }
+      
+      // Location detection
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            
+            // Reverse geocoding to get location name
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+              .then(response => response.json())
+              .then(data => {
+                const locationName = data.address.city || data.address.town || data.address.village || "Unknown";
+                document.getElementById('location').textContent = `Location: ${locationName}`;
+              })
+              .catch(() => {
+                document.getElementById('location').textContent = `Location: ${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+              });
+          },
+          () => {
+            document.getElementById('location').textContent = `Location: Access Denied`;
+          }
+        );
+      }
+    }
+    
+    detectDeviceInfo();
+
+    // Modal and Form Handling
+    const modal = document.getElementById("form-modal");
+    const earlyAccessBtn = document.getElementById("early-access-btn");
+    const closeModal = document.getElementById("close-modal");
+    const accessForm = document.getElementById("access-form");
+    const acknowledgement = document.getElementById("acknowledgement");
+
+    // Open modal when clicking the early access button
+    earlyAccessBtn.addEventListener("click", function(e) {
+      e.preventDefault();
+      modal.style.display = "flex";
+    });
+
+    // Close modal when clicking the close button
+    closeModal.addEventListener("click", function() {
+      modal.style.display = "none";
+      // Reset form when closing
+      accessForm.style.display = "block";
+      acknowledgement.style.display = "none";
+      accessForm.reset();
+    });
+
+    // Close modal when clicking outside the modal content
+    window.addEventListener("click", function(e) {
+      if (e.target === modal) {
+        modal.style.display = "none";
+        // Reset form when closing
+        accessForm.style.display = "block";
+        acknowledgement.style.display = "none";
+        accessForm.reset();
+      }
+    });
+
+    // Form submission
+    accessForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+      
+      // Here you would normally send the form data to your server
+      // For demo purposes, we'll just show the acknowledgement
+      
+      // Hide the form
+      accessForm.style.display = "none";
+      
+      // Show acknowledgement
+      acknowledgement.style.display = "block";
+      
+      // Close modal after 5 seconds
+      setTimeout(() => {
+        modal.style.display = "none";
+        // Reset for next open
+        setTimeout(() => {
+          accessForm.style.display = "block";
+          acknowledgement.style.display = "none";
+          accessForm.reset();
+        }, 500);
+      }, 5000);
+    });
+  </script>
+</body>
+</html>
